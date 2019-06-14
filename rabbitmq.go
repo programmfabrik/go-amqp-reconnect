@@ -13,14 +13,14 @@ const delay = 3 // reconnect after delay seconds
 // Connection amqp.Connection wrapper
 type Connection struct {
 	*amqp.Connection
-	cbChannel *chan bool
+	cbChannel chan bool
 }
 
 // Channel amqp.Channel wapper
 type Channel struct {
 	*amqp.Channel
 	closed    int32
-	cbChannel *chan bool
+	cbChannel chan bool
 }
 
 // Channel wrap amqp.Connection.Channel, get a auto reconnect channel
@@ -57,7 +57,7 @@ func (c *Connection) Channel() (*Channel, error) {
 					channel.Channel = ch
 
 					if channel.cbChannel != nil {
-						*channel.cbChannel <- true
+						channel.cbChannel <- true
 					}
 					break
 				}
@@ -76,7 +76,7 @@ func Dial(url string) (*Connection, error) {
 }
 
 // Dial wrap amqp.Dial, dial and get a reconnect connection
-func DialWithCallBackChan(url string, cbChannel *chan bool) (*Connection, error) {
+func DialWithCallBackChan(url string, cbChannel chan bool) (*Connection, error) {
 	conn, err := amqp.Dial(url)
 	if err != nil {
 		return nil, err
@@ -108,7 +108,7 @@ func DialWithCallBackChan(url string, cbChannel *chan bool) (*Connection, error)
 					debugf("reconnect success")
 
 					if connection.cbChannel != nil {
-						*connection.cbChannel <- true
+						connection.cbChannel <- true
 					}
 					break
 				}
